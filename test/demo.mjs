@@ -67,10 +67,10 @@ const page2 = await browser.newPage({ viewport: { width: 1440, height: 950 } });
 page2.on('pageerror', e => console.error('pageerror:', e.message));
 await page2.goto(URL, { waitUntil: 'load' });
 await page2.waitForFunction(() => window.RAPP_VIDEO && window.RAPP_VIDEO.state === 'idle');
+await page2.click('[data-tab="walkthrough"]');
 await page2.setInputFiles('#wt-video-input', RAW);
 await page2.waitForTimeout(2000);
 await page2.fill('#wt-doc-input', [
-  'RAPP Video — a full video studio in one HTML file',
   'Browse the preset gallery — every card is a live preview',
   'Pick a camera move, then upload your source image',
   'Dial in duration, style, and effects',
@@ -79,6 +79,15 @@ await page2.fill('#wt-doc-input', [
 ].join('\n'));
 await page2.click('#wt-draft-btn');
 await page2.waitForTimeout(800);
+// Give the intro card a real title, keep everything else as drafted
+await page2.evaluate(() => {
+  const ta = document.getElementById('wt-timeline');
+  const tl = JSON.parse(ta.value);
+  if (tl[0] && tl[0].title) tl[0].title = 'RAPP Video — a full studio in one HTML file';
+  ta.value = JSON.stringify(tl, null, 2);
+  ta.dispatchEvent(new Event('input', { bubbles: true }));
+});
+await page2.waitForTimeout(400);
 const segs = await page2.evaluate(() => { try { return JSON.parse(document.getElementById('wt-timeline').value).length; } catch { return 0; } });
 console.log('drafted segments:', segs);
 await page2.click('#wt-render-btn');
@@ -90,10 +99,11 @@ if (state.s === 'done') {
     const blob = await fetch(document.getElementById('wt-result-video').src).then(r => r.blob());
     const buf = await blob.arrayBuffer(); const bytes = new Uint8Array(buf);
     let s = ''; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
-    return btoa(s);
+    return { b64: btoa(s), type: blob.type };
   });
-  fs.writeFileSync(path.join(OUT, 'produced-walkthrough.webm'), Buffer.from(g, 'base64'));
-  console.log('PRODUCED:', path.join(OUT, 'produced-walkthrough.webm'), fs.statSync(path.join(OUT, 'produced-walkthrough.webm')).size, 'bytes');
+  const outFile = path.join(OUT, 'produced-walkthrough' + (/mp4/.test(g.type) ? '.mp4' : '.webm'));
+  fs.writeFileSync(outFile, Buffer.from(g.b64, 'base64'));
+  console.log('PRODUCED:', outFile, fs.statSync(outFile).size, 'bytes', g.type);
 }
 await browser.close();
 process.exit(state.s === 'done' ? 0 : 1);
