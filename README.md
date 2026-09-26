@@ -1,5 +1,9 @@
 # RAPP Video
 
+<!-- rapp1:network-header:start -->
+[![RAPP/1](https://kody-w.github.io/rapp-hive-public/portfolio/badges/rapp-video.svg)](https://github.com/kody-w/rapp-hive-public/blob/main/portfolio/repos/rapp-video.md) · **New to RAPP?** [Start here: get your Brainstem →](https://github.com/kody-w/rapp-installer#start-here)
+<!-- rapp1:network-header:end -->
+
 **A cinematic video studio in a single HTML file.** Pick a camera move, drop in an
 image (or just a prompt), and get a real, downloadable video — rendered entirely in
 your browser. No account. No credits. No queue. No lock-in.
